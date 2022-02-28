@@ -77,8 +77,8 @@ section {
       title = "Main Resource Configuration"
 
       variable "name" {
-        required = true
-        type = string
+        required    = true
+        type        = string
         description = <<-END
           The resource name of the Policy.
 
@@ -94,27 +94,17 @@ section {
       }
 
       variable "parent" {
-        required = true
-        type = string
+        required    = true
+        type        = string
         description = "The parent of the resource."
       }
 
       variable "spec" {
-        type = object(policy_spec)
+        type        = object(policy_spec)
         description = "Basic information about the Organization Policy."
 
-        attribute "etag" {
-          type = string
-          description = <<-END
-            An opaque tag indicating the current version of the Policy, used for concurrency control.
-            This field is ignored if used in a CreatePolicy request.
-            When the Policy is returned from either a `GetPolicy` or a `ListPolicies` request, this etag indicates the version of the current `Policy` to use when executing a read-modify-write loop.
-            When the Policy is returned from a `GetEffectivePolicy` request, the etag will be unset.
-          END
-        }
-
         attribute "inherit_from_parent" {
-          type = bool
+          type        = bool
           description = <<-END
             Determines the inheritance behavior for this Policy.
             If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy. If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
@@ -123,7 +113,7 @@ section {
         }
 
         attribute "reset" {
-          type = bool
+          type        = bool
           description = <<-END
             Ignores policies set above this resource and restores the `constraint_default` enforcement behavior of the specific Constraint at this resource.
             This field can be set in policies for either list or boolean constraints. If set, rules must be empty and `inherit_from_parent` must be set to false.
@@ -131,91 +121,86 @@ section {
         }
 
         attribute "rules" {
-          type = list(policy_rule)
+          type        = list(policy_rule)
           description = <<-END
             Up to 10 PolicyRules are allowed. In Policies for boolean constraints, the following requirements apply: - There must be one and only one PolicyRule where condition is unset. - BooleanPolicyRules with conditions must set enforced to the opposite of the PolicyRule without a condition. - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
           END
 
           attribute "allow_all" {
-            type = bool
+            type        = bool # TODO: should it be string "TRUE"?
             description = <<-END
               Setting this to true means that all values are allowed. This field can be set only in `Policies` for list constraints.
             END
           }
-          attribute "condition" {
-            type = object(condition)
-            description = <<-END
-              A condition which determines whether this rule is used in the evaluation of the policy. When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators. Each subexpression must be of the form "resource.matchTag('/tag_key_short_name, 'tag_value_short_name')". or "resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')". where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service. An example expression is: "resource.matchTag('123456789/environment, 'prod')". or "resource.matchTagId('tagKeys/123', 'tagValues/456')".
-            END
 
-            attribute "description" {
-              type = string
-              description = <<-END
-                 Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-              END
-            }
-
-            attribute "expression" {
-              type = string
-              description = <<-END
-                Textual representation of an expression in Common Expression Language syntax.
-              END
-            }
-
-            attribute "location" {
-              type = string
-              description = <<-END
-                String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-              END
-            }
-
-            attribute "title" {
-              type = string
-              description = <<-END
-                Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-              END
-            }
-          }
           attribute "deny_all" {
-            type = bool
+            type        = bool # TODO: should it be string "FALSE"?
             description = <<-END
               Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
             END
           }
 
           attribute "enforce" {
-            type = bool
+            type        = bool
             description = <<-END
               If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
               This field can be set only in Policies for boolean constraints.
             END
           }
 
+          attribute "condition" {
+            type        = object(condition)
+            description = <<-END
+              A condition which determines whether this rule is used in the evaluation of the policy. When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators. Each subexpression must be of the form "resource.matchTag('/tag_key_short_name, 'tag_value_short_name')". or "resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')". where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service. An example expression is: "resource.matchTag('123456789/environment, 'prod')". or "resource.matchTagId('tagKeys/123', 'tagValues/456')".
+            END
+
+            attribute "description" {
+              type        = string
+              description = <<-END
+                 Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+              END
+            }
+
+            attribute "expression" {
+              type        = string
+              description = <<-END
+                Textual representation of an expression in Common Expression Language syntax.
+              END
+            }
+
+            attribute "location" {
+              type        = string
+              description = <<-END
+                String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+              END
+            }
+
+            attribute "title" {
+              type        = string
+              description = <<-END
+                Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+              END
+            }
+          }
+
           attribute "values" {
-            type = object(values)
+            type        = object(values)
             description = <<-END
 
             END
             attribute "allowed_values" {
-              type = set(string)
+              type        = set(string)
               description = <<-END
                 List of values allowed at this resource.
               END
             }
             attribute "denied_values" {
-              type = set(string)
+              type        = set(string)
               description = <<-END
                 List of values denied at this resource.
               END
             }
           }
-        }
-
-        attribute "update_time" {
-          type = string
-          description = <<-END
-            Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that `Policy`.
-          END
         }
       }
     }
@@ -309,6 +294,11 @@ section {
     content = <<-END
       The following attributes are exported in the outputs of the module:
     END
+
+    output "policy" {
+      description = "All outputs of the created 'google_org_policy_policy' resource."
+      type        = resource(google_org_policy_policy)
+    }
 
     output "module_enabled" {
       type        = bool

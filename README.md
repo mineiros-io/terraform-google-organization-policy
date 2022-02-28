@@ -78,13 +78,6 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   The `policy_spec` object accepts the following attributes:
 
-  - [**`etag`**](#attr-spec-etag): *(Optional `string`)*<a name="attr-spec-etag"></a>
-
-    An opaque tag indicating the current version of the Policy, used for concurrency control.
-    This field is ignored if used in a CreatePolicy request.
-    When the Policy is returned from either a `GetPolicy` or a `ListPolicies` request, this etag indicates the version of the current `Policy` to use when executing a read-modify-write loop.
-    When the Policy is returned from a `GetEffectivePolicy` request, the etag will be unset.
-
   - [**`inherit_from_parent`**](#attr-spec-inherit_from_parent): *(Optional `bool`)*<a name="attr-spec-inherit_from_parent"></a>
 
     Determines the inheritance behavior for this Policy.
@@ -105,6 +98,15 @@ See [variables.tf] and [examples/] for details and use-cases.
     - [**`allow_all`**](#attr-spec-rules-allow_all): *(Optional `bool`)*<a name="attr-spec-rules-allow_all"></a>
 
       Setting this to true means that all values are allowed. This field can be set only in `Policies` for list constraints.
+
+    - [**`deny_all`**](#attr-spec-rules-deny_all): *(Optional `bool`)*<a name="attr-spec-rules-deny_all"></a>
+
+      Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
+
+    - [**`enforce`**](#attr-spec-rules-enforce): *(Optional `bool`)*<a name="attr-spec-rules-enforce"></a>
+
+      If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
+      This field can be set only in Policies for boolean constraints.
 
     - [**`condition`**](#attr-spec-rules-condition): *(Optional `object(condition)`)*<a name="attr-spec-rules-condition"></a>
 
@@ -128,15 +130,6 @@ See [variables.tf] and [examples/] for details and use-cases.
 
         Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
 
-    - [**`deny_all`**](#attr-spec-rules-deny_all): *(Optional `bool`)*<a name="attr-spec-rules-deny_all"></a>
-
-      Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
-
-    - [**`enforce`**](#attr-spec-rules-enforce): *(Optional `bool`)*<a name="attr-spec-rules-enforce"></a>
-
-      If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
-      This field can be set only in Policies for boolean constraints.
-
     - [**`values`**](#attr-spec-rules-values): *(Optional `object(values)`)*<a name="attr-spec-rules-values"></a>
 
       The `values` object accepts the following attributes:
@@ -148,10 +141,6 @@ See [variables.tf] and [examples/] for details and use-cases.
       - [**`denied_values`**](#attr-spec-rules-values-denied_values): *(Optional `set(string)`)*<a name="attr-spec-rules-values-denied_values"></a>
 
         List of values denied at this resource.
-
-  - [**`update_time`**](#attr-spec-update_time): *(Optional `string`)*<a name="attr-spec-update_time"></a>
-
-    Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that `Policy`.
 
 ### Module Configuration
 
@@ -228,6 +217,10 @@ See [variables.tf] and [examples/] for details and use-cases.
 ## Module Outputs
 
 The following attributes are exported in the outputs of the module:
+
+- [**`policy`**](#output-policy): *(`resource(google_org_policy_policy)`)*<a name="output-policy"></a>
+
+  All outputs of the created 'google_org_policy_policy' resource.
 
 - [**`module_enabled`**](#output-module_enabled): *(`bool`)*<a name="output-module_enabled"></a>
 
