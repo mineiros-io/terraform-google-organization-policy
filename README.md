@@ -3,15 +3,15 @@
 [![Build Status](https://github.com/mineiros-io/terraform-google-organization-policy/workflows/Tests/badge.svg)](https://github.com/mineiros-io/terraform-google-organization-policy/actions)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/mineiros-io/terraform-google-organization-policy.svg?label=latest&sort=semver)](https://github.com/mineiros-io/terraform-google-organization-policy/releases)
 [![Terraform Version](https://img.shields.io/badge/Terraform-1.x-623CE4.svg?logo=terraform)](https://github.com/hashicorp/terraform/releases)
-[![AWS Provider Version](https://img.shields.io/badge/AWS-3-F8991D.svg?logo=terraform)](https://github.com/terraform-providers/terraform-provider-aws/releases)
+[![Google Provider Version](https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform)](https://github.com/terraform-providers/terraform-provider-google/releases)
 [![Join Slack](https://img.shields.io/badge/slack-@mineiros--community-f32752.svg?logo=slack)](https://mineiros.io/slack)
 
 # terraform-google-organization-policy
 
-A [Terraform] module for [Amazon Web Services (AWS)][aws].
+A [Terraform](https://www.terraform.io) module to create [Google Organization Policies](https://cloud.google.com/resource-manager/docs/organization-policy/overview) on [Google Cloud Services (GCP)](https://cloud.google.com/).
 
 **_This module supports Terraform version 1
-and is compatible with the Terraform AWS Provider version 3._**
+and is compatible with the Terraform Google Provider version 4._**
 
 This module is part of our Infrastructure as Code (IaC) framework
 that enables our users and customers to easily deploy and manage reusable,
@@ -39,20 +39,14 @@ secure, and production-grade cloud infrastructure.
 
 This module implements the following Terraform resources
 
-- `null_resource`
-
-and supports additional features of the following modules:
-
-- [mineiros-io/something/google](https://github.com/mineiros-io/terraform-google-something)
+- `google_org_policy_policy`
 
 ## Getting Started
 
 Most common usage of the module:
 
 ```hcl
-module "terraform-google-organization-policy" {
-  source = "git@github.com:mineiros-io/terraform-google-organization-policy.git?ref=v0.0.1"
-}
+  FOO
 ```
 
 ## Module Argument Reference
@@ -61,40 +55,103 @@ See [variables.tf] and [examples/] for details and use-cases.
 
 ### Main Resource Configuration
 
-- [**`example_required`**](#var-example_required): *(**Required** `string`)*<a name="var-example_required"></a>
+- [**`name`**](#var-name): *(**Required** `string`)*<a name="var-name"></a>
 
-  The name of the resource
+  The resource name of the Policy.
 
-- [**`example_name`**](#var-example_name): *(Optional `string`)*<a name="var-example_name"></a>
+  Must be one of the following forms, where constraint_name is the name of the constraint which this Policy configures:
+  - projects/{project_number}/policies/{constraint_name}
+  - folders/{folder_id}/policies/{constraint_name}
+  - organizations/{organization_id}/policies/{constraint_name}
 
-  The name of the resource
+  For example, "projects/123/policies/compute.disableSerialPortAccess".
 
-  Default is `"optional-resource-name"`.
+  **Note**: projects/{project_id}/policies/{constraint_name} is also an acceptable name for API requests, but responses will return the name using the equivalent project number.
 
-- [**`example_user_object`**](#var-example_user_object): *(Optional `object(user)`)*<a name="var-example_user_object"></a>
+- [**`parent`**](#var-parent): *(**Required** `string`)*<a name="var-parent"></a>
 
-  Default is `{}`.
+  The parent of the resource.
 
-  Example:
+- [**`spec`**](#var-spec): *(Optional `object(policy_spec)`)*<a name="var-spec"></a>
 
-  ```hcl
-  user = {
-    name        = "marius"
-    description = "The guy from Berlin."
-  }
-  ```
+  Basic information about the Organization Policy.
 
-  The `user` object accepts the following attributes:
+  The `policy_spec` object accepts the following attributes:
 
-  - [**`name`**](#attr-example_user_object-name): *(**Required** `string`)*<a name="attr-example_user_object-name"></a>
+  - [**`etag`**](#attr-spec-etag): *(Optional `string`)*<a name="attr-spec-etag"></a>
 
-    The name of the user
+    An opaque tag indicating the current version of the Policy, used for concurrency control.
+    This field is ignored if used in a CreatePolicy request.
+    When the Policy is returned from either a `GetPolicy` or a `ListPolicies` request, this etag indicates the version of the current `Policy` to use when executing a read-modify-write loop.
+    When the Policy is returned from a `GetEffectivePolicy` request, the etag will be unset.
 
-  - [**`description`**](#attr-example_user_object-description): *(Optional `string`)*<a name="attr-example_user_object-description"></a>
+  - [**`inherit_from_parent`**](#attr-spec-inherit_from_parent): *(Optional `bool`)*<a name="attr-spec-inherit_from_parent"></a>
 
-    A description describng the user in more detail
+    Determines the inheritance behavior for this Policy.
+    If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy. If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+    This field can be set only for Policies which configure list constraints.
 
-    Default is `""`.
+  - [**`reset`**](#attr-spec-reset): *(Optional `bool`)*<a name="attr-spec-reset"></a>
+
+    Ignores policies set above this resource and restores the `constraint_default` enforcement behavior of the specific Constraint at this resource.
+    This field can be set in policies for either list or boolean constraints. If set, rules must be empty and `inherit_from_parent` must be set to false.
+
+  - [**`rules`**](#attr-spec-rules): *(Optional `list(policy_rule)`)*<a name="attr-spec-rules"></a>
+
+    Up to 10 PolicyRules are allowed. In Policies for boolean constraints, the following requirements apply: - There must be one and only one PolicyRule where condition is unset. - BooleanPolicyRules with conditions must set enforced to the opposite of the PolicyRule without a condition. - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
+
+    Each `policy_rule` object in the list accepts the following attributes:
+
+    - [**`allow_all`**](#attr-spec-rules-allow_all): *(Optional `bool`)*<a name="attr-spec-rules-allow_all"></a>
+
+      Setting this to true means that all values are allowed. This field can be set only in `Policies` for list constraints.
+
+    - [**`condition`**](#attr-spec-rules-condition): *(Optional `object(condition)`)*<a name="attr-spec-rules-condition"></a>
+
+      A condition which determines whether this rule is used in the evaluation of the policy. When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators. Each subexpression must be of the form "resource.matchTag('/tag_key_short_name, 'tag_value_short_name')". or "resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')". where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service. An example expression is: "resource.matchTag('123456789/environment, 'prod')". or "resource.matchTagId('tagKeys/123', 'tagValues/456')".
+
+      The `condition` object accepts the following attributes:
+
+      - [**`description`**](#attr-spec-rules-condition-description): *(Optional `string`)*<a name="attr-spec-rules-condition-description"></a>
+
+        Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+
+      - [**`expression`**](#attr-spec-rules-condition-expression): *(Optional `string`)*<a name="attr-spec-rules-condition-expression"></a>
+
+        Textual representation of an expression in Common Expression Language syntax.
+
+      - [**`location`**](#attr-spec-rules-condition-location): *(Optional `string`)*<a name="attr-spec-rules-condition-location"></a>
+
+        String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+
+      - [**`title`**](#attr-spec-rules-condition-title): *(Optional `string`)*<a name="attr-spec-rules-condition-title"></a>
+
+        Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+
+    - [**`deny_all`**](#attr-spec-rules-deny_all): *(Optional `bool`)*<a name="attr-spec-rules-deny_all"></a>
+
+      Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
+
+    - [**`enforce`**](#attr-spec-rules-enforce): *(Optional `bool`)*<a name="attr-spec-rules-enforce"></a>
+
+      If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
+      This field can be set only in Policies for boolean constraints.
+
+    - [**`values`**](#attr-spec-rules-values): *(Optional `object(values)`)*<a name="attr-spec-rules-values"></a>
+
+      The `values` object accepts the following attributes:
+
+      - [**`allowed_values`**](#attr-spec-rules-values-allowed_values): *(Optional `set(string)`)*<a name="attr-spec-rules-values-allowed_values"></a>
+
+        List of values allowed at this resource.
+
+      - [**`denied_values`**](#attr-spec-rules-values-denied_values): *(Optional `set(string)`)*<a name="attr-spec-rules-values-denied_values"></a>
+
+        List of values denied at this resource.
+
+  - [**`update_time`**](#attr-spec-update_time): *(Optional `string`)*<a name="attr-spec-update_time"></a>
+
+    Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that `Policy`.
 
 ### Module Configuration
 
