@@ -46,7 +46,31 @@ This module implements the following Terraform resources
 Most common usage of the module:
 
 ```hcl
-  FOO
+  module "terraform-module-template" {
+    source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+
+    name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
+    parent = "projects/test-project"
+
+    spec = {
+      rules = {
+        condition = {
+          description = "A sample condition for the policy"
+          expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
+          location    = "sample-location.log"
+          title       = "sample-condition"
+        }
+        values = {
+          allowed_values = ["projects/allowed-project"]
+          denied_values  = ["projects/denied-project"]
+        }
+      }
+
+      rules = {
+        allow_all = true
+      }
+    }
+  }
 ```
 
 ## Module Argument Reference
@@ -81,17 +105,26 @@ See [variables.tf] and [examples/] for details and use-cases.
   - [**`inherit_from_parent`**](#attr-spec-inherit_from_parent): *(Optional `bool`)*<a name="attr-spec-inherit_from_parent"></a>
 
     Determines the inheritance behavior for this Policy.
-    If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy. If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+
+    If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy.
+
+    If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+
     This field can be set only for Policies which configure list constraints.
 
   - [**`reset`**](#attr-spec-reset): *(Optional `bool`)*<a name="attr-spec-reset"></a>
 
     Ignores policies set above this resource and restores the `constraint_default` enforcement behavior of the specific Constraint at this resource.
+
     This field can be set in policies for either list or boolean constraints. If set, rules must be empty and `inherit_from_parent` must be set to false.
 
   - [**`rules`**](#attr-spec-rules): *(Optional `list(policy_rule)`)*<a name="attr-spec-rules"></a>
 
-    Up to 10 PolicyRules are allowed. In Policies for boolean constraints, the following requirements apply: - There must be one and only one PolicyRule where condition is unset. - BooleanPolicyRules with conditions must set enforced to the opposite of the PolicyRule without a condition. - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
+    Up to 10 PolicyRules are allowed.
+    In Policies for boolean constraints, the following requirements apply:
+    - There must be one and only one PolicyRule where condition is unset.
+    - BooleanPolicyRules with conditions must set `enforced` to the opposite of the PolicyRule without a condition.
+    - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
 
     Each `policy_rule` object in the list accepts the following attributes:
 
@@ -106,11 +139,18 @@ See [variables.tf] and [examples/] for details and use-cases.
     - [**`enforce`**](#attr-spec-rules-enforce): *(Optional `bool`)*<a name="attr-spec-rules-enforce"></a>
 
       If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
+
       This field can be set only in Policies for boolean constraints.
 
     - [**`condition`**](#attr-spec-rules-condition): *(Optional `object(condition)`)*<a name="attr-spec-rules-condition"></a>
 
-      A condition which determines whether this rule is used in the evaluation of the policy. When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators. Each subexpression must be of the form "resource.matchTag('/tag_key_short_name, 'tag_value_short_name')". or "resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')". where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service. An example expression is: "resource.matchTag('123456789/environment, 'prod')". or "resource.matchTagId('tagKeys/123', 'tagValues/456')".
+      A condition which determines whether this rule is used in the evaluation of the policy.
+
+      When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators.
+
+      Each subexpression must be of the form `"resource.matchTag('/tag_key_short_name, 'tag_value_short_name')"`. or `"resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')"`. where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service.
+
+      An example expression is: `"resource.matchTag('123456789/environment, 'prod')"`. or `"resource.matchTagId('tagKeys/123', 'tagValues/456')"`.
 
       The `condition` object accepts the following attributes:
 
@@ -150,55 +190,6 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   Default is `true`.
 
-- [**`module_tags`**](#var-module_tags): *(Optional `map(string)`)*<a name="var-module_tags"></a>
-
-  A map of tags that will be applied to all created resources that accept tags.
-  Tags defined with `module_tags` can be overwritten by resource-specific tags.
-
-  Default is `{}`.
-
-  Example:
-
-  ```hcl
-  module_tags = {
-    environment = "staging"
-    team        = "platform"
-  }
-  ```
-
-- [**`module_timeouts`**](#var-module_timeouts): *(Optional `map(timeout)`)*<a name="var-module_timeouts"></a>
-
-  A map of timeout objects that is keyed by Terraform resource name
-  defining timeouts for `create`, `update` and `delete` Terraform operations.
-
-  Supported resources are: `null_resource`, ...
-
-  Example:
-
-  ```hcl
-  module_timeouts = {
-    null_resource = {
-      create = "4m"
-      update = "4m"
-      delete = "4m"
-    }
-  }
-  ```
-
-  Each `timeout` object in the map accepts the following attributes:
-
-  - [**`create`**](#attr-module_timeouts-create): *(Optional `string`)*<a name="attr-module_timeouts-create"></a>
-
-    Timeout for create operations.
-
-  - [**`update`**](#attr-module_timeouts-update): *(Optional `string`)*<a name="attr-module_timeouts-update"></a>
-
-    Timeout for update operations.
-
-  - [**`delete`**](#attr-module_timeouts-delete): *(Optional `string`)*<a name="attr-module_timeouts-delete"></a>
-
-    Timeout for delete operations.
-
 - [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependency)`)*<a name="var-module_depends_on"></a>
 
   A list of dependencies.
@@ -225,10 +216,6 @@ The following attributes are exported in the outputs of the module:
 - [**`module_enabled`**](#output-module_enabled): *(`bool`)*<a name="output-module_enabled"></a>
 
   Whether this module is enabled.
-
-- [**`module_tags`**](#output-module_tags): *(`map(string)`)*<a name="output-module_tags"></a>
-
-  The map of tags that are being applied to all created resources that accept tags.
 
 ## External Documentation
 

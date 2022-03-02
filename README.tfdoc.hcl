@@ -62,7 +62,31 @@ section {
       Most common usage of the module:
 
       ```hcl
-        FOO
+        module "terraform-module-template" {
+          source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+
+          name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
+          parent = "projects/test-project"
+
+          spec = {
+            rules = {
+              condition = {
+                description = "A sample condition for the policy"
+                expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
+                location    = "sample-location.log"
+                title       = "sample-condition"
+              }
+              values = {
+                allowed_values = ["projects/allowed-project"]
+                denied_values  = ["projects/denied-project"]
+              }
+            }
+
+            rules = {
+              allow_all = true
+            }
+          }
+        }
       ```
     END
   }
@@ -107,7 +131,11 @@ section {
           type        = bool
           description = <<-END
             Determines the inheritance behavior for this Policy.
-            If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy. If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+
+            If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy.
+
+            If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+
             This field can be set only for Policies which configure list constraints.
           END
         }
@@ -116,6 +144,7 @@ section {
           type        = bool
           description = <<-END
             Ignores policies set above this resource and restores the `constraint_default` enforcement behavior of the specific Constraint at this resource.
+
             This field can be set in policies for either list or boolean constraints. If set, rules must be empty and `inherit_from_parent` must be set to false.
           END
         }
@@ -123,7 +152,11 @@ section {
         attribute "rules" {
           type        = list(policy_rule)
           description = <<-END
-            Up to 10 PolicyRules are allowed. In Policies for boolean constraints, the following requirements apply: - There must be one and only one PolicyRule where condition is unset. - BooleanPolicyRules with conditions must set enforced to the opposite of the PolicyRule without a condition. - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
+            Up to 10 PolicyRules are allowed.
+            In Policies for boolean constraints, the following requirements apply:
+            - There must be one and only one PolicyRule where condition is unset.
+            - BooleanPolicyRules with conditions must set `enforced` to the opposite of the PolicyRule without a condition.
+            - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
           END
 
           attribute "allow_all" {
@@ -144,6 +177,7 @@ section {
             type        = bool
             description = <<-END
               If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
+
               This field can be set only in Policies for boolean constraints.
             END
           }
@@ -151,7 +185,13 @@ section {
           attribute "condition" {
             type        = object(condition)
             description = <<-END
-              A condition which determines whether this rule is used in the evaluation of the policy. When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators. Each subexpression must be of the form "resource.matchTag('/tag_key_short_name, 'tag_value_short_name')". or "resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')". where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service. An example expression is: "resource.matchTag('123456789/environment, 'prod')". or "resource.matchTagId('tagKeys/123', 'tagValues/456')".
+              A condition which determines whether this rule is used in the evaluation of the policy.
+
+              When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators.
+
+              Each subexpression must be of the form `"resource.matchTag('/tag_key_short_name, 'tag_value_short_name')"`. or `"resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')"`. where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service.
+
+              An example expression is: `"resource.matchTag('123456789/environment, 'prod')"`. or `"resource.matchTagId('tagKeys/123', 'tagValues/456')"`.
             END
 
             attribute "description" {
@@ -216,69 +256,13 @@ section {
         END
       }
 
-      # TODO: remove if not needed
-      variable "module_tags" {
-        type           = map(string)
-        default        = {}
-        description    = <<-END
-          A map of tags that will be applied to all created resources that accept tags.
-          Tags defined with `module_tags` can be overwritten by resource-specific tags.
-        END
-        readme_example = <<-END
-          module_tags = {
-            environment = "staging"
-            team        = "platform"
-          }
-        END
-      }
-
-      # TODO: remove if not needed
-      variable "module_timeouts" {
-        type           = map(timeout)
-        description    = <<-END
-          A map of timeout objects that is keyed by Terraform resource name
-          defining timeouts for `create`, `update` and `delete` Terraform operations.
-
-          Supported resources are: `null_resource`, ...
-        END
-        readme_example = <<-END
-          module_timeouts = {
-            null_resource = {
-              create = "4m"
-              update = "4m"
-              delete = "4m"
-            }
-          }
-        END
-
-        attribute "create" {
-          type        = string
-          description = <<-END
-            Timeout for create operations.
-          END
-        }
-
-        attribute "update" {
-          type        = string
-          description = <<-END
-            Timeout for update operations.
-          END
-        }
-
-        attribute "delete" {
-          type        = string
-          description = <<-END
-            Timeout for delete operations.
-          END
-        }
-      }
-
       variable "module_depends_on" {
-        type           = list(dependency)
-        description    = <<-END
+        type        = list(dependency)
+        description = <<-END
           A list of dependencies.
           Any object can be _assigned_ to this list to define a hidden external dependency.
         END
+
         default        = []
         readme_example = <<-END
           module_depends_on = [
@@ -305,13 +289,6 @@ section {
       description = <<-END
           Whether this module is enabled.
         END
-    }
-
-    output "module_tags" {
-      type        = map(string)
-      description = <<-END
-        The map of tags that are being applied to all created resources that accept tags.
-      END
     }
   }
 
