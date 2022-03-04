@@ -13,8 +13,8 @@ This example shows how to ...
 ### Cloning the repository
 
 ```bash
-git clone https://github.com/mineiros-io/terraform-module-template.git
-cd terraform-module-template/examples/example
+git clone https://github.com/mineiros-io/terraform-google-organization-policy.git
+cd terraform-google-organization-policy/examples/example
 ```
 
 ### Initializing Terraform
@@ -37,8 +37,8 @@ cd terraform-module-template/examples/example
 
 <!-- References -->
 
-[main.tf]: https://github.com/mineiros-io/terraform-module-template/blob/main/examples/example/main.tf
-[homepage]: https://mineiros.io/?ref=terraform-module-template
+[main.tf]: https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/examples/example/main.tf
+[homepage]: https://mineiros.io/?ref=terraform-google-organization-policy
 [badge-license]: https://img.shields.io/badge/license-Apache%202.0-brightgreen.svg
 [badge-terraform]: https://img.shields.io/badge/Terraform-1.x-623CE4.svg?logo=terraform
 

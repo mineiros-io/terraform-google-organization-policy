@@ -6,6 +6,11 @@
 # OUTPUT ALL RESOURCES AS FULL OBJECTS
 # ----------------------------------------------------------------------------------------------------------------------
 
+output "policy" {
+  description = "All outputs of the created 'google_org_policy_policy' resource."
+  value       = one(resource.google_org_policy_policy.policy)
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OUTPUT MODULE CONFIGURATION
 # ----------------------------------------------------------------------------------------------------------------------

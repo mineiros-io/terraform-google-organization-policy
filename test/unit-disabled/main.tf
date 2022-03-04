@@ -4,23 +4,17 @@
 # The purpose is to verify no resources are created when the module is disabled.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-variable "aws_region" {
-  description = "(Optional) The AWS region in which all resources will be created."
-  type        = string
-  default     = "us-east-1"
-}
-
 terraform {
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.0"
     }
   }
 }
 
-provider "aws" {
-  region = var.aws_region
+variable "spec" {
+
 }
 
 # DO NOT RENAME MODULE NAME
@@ -30,8 +24,29 @@ module "test" {
   module_enabled = false
 
   # add all required arguments
+  name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
+  parent = "projects/test-project"
 
   # add all optional arguments that create additional resources
+  spec = {
+    rules = {
+      condition = {
+        description = "A sample condition for the policy"
+        expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
+        location    = "sample-location.log"
+        title       = "sample-condition"
+      }
+
+      values = {
+        allowed_values = ["projects/allowed-project"]
+        denied_values  = ["projects/denied-project"]
+      }
+    }
+
+    rules = {
+      allow_all = true
+    }
+  }
 }
 
 # outputs generate non-idempotent terraform plans so we disable them for now unless we need them.

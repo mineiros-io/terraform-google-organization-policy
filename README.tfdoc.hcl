@@ -1,16 +1,16 @@
 header {
   image = "https://raw.githubusercontent.com/mineiros-io/brand/3bffd30e8bdbbde32c143e2650b2faa55f1df3ea/mineiros-primary-logo.svg"
-  url   = "https://mineiros.io/?ref=terraform-module-template"
+  url   = "https://mineiros.io/?ref=terraform-google-organization-policy"
 
   badge "build" {
-    image = "https://github.com/mineiros-io/terraform-module-template/workflows/Tests/badge.svg"
-    url   = "https://github.com/mineiros-io/terraform-module-template/actions"
+    image = "https://github.com/mineiros-io/terraform-google-organization-policy/workflows/Tests/badge.svg"
+    url   = "https://github.com/mineiros-io/terraform-google-organization-policy/actions"
     text  = "Build Status"
   }
 
   badge "semver" {
-    image = "https://img.shields.io/github/v/tag/mineiros-io/terraform-module-template.svg?label=latest&sort=semver"
-    url   = "https://github.com/mineiros-io/terraform-module-template/releases"
+    image = "https://img.shields.io/github/v/tag/mineiros-io/terraform-google-organization-policy.svg?label=latest&sort=semver"
+    url   = "https://github.com/mineiros-io/terraform-google-organization-policy/releases"
     text  = "GitHub tag (latest SemVer)"
   }
 
@@ -20,24 +20,11 @@ header {
     text  = "Terraform Version"
   }
 
-  # TODO: remove and enable gh or gcp provider badge
-  badge "tf-aws-provider" {
-    image = "https://img.shields.io/badge/AWS-3-F8991D.svg?logo=terraform"
-    url   = "https://github.com/terraform-providers/terraform-provider-aws/releases"
-    text  = "AWS Provider Version"
+  badge "tf-gcp-provider" {
+    image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
+    url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
+    text  = "Google Provider Version"
   }
-
-  # badge "tf-gh" {
-  #   image = "https://img.shields.io/badge/GH-4-F8991D.svg?logo=terraform"
-  #   url = "https://github.com/terraform-providers/terraform-provider-github/releases"
-  #   text = "Github Provider Version"
-  # }
-
-  # badge "tf-gcp-provider" {
-  #   image = "https://img.shields.io/badge/google-4-1A73E8.svg?logo=terraform"
-  #   url   = "https://github.com/terraform-providers/terraform-provider-google/releases"
-  #   text  = "Google Provider Version"
-  # }
 
   badge "slack" {
     image = "https://img.shields.io/badge/slack-@mineiros--community-f32752.svg?logo=slack"
@@ -47,13 +34,13 @@ header {
 }
 
 section {
-  title   = "terraform-module-template"
+  title   = "terraform-google-organization-policy"
   toc     = true
   content = <<-END
-    A [Terraform] module for [Amazon Web Services (AWS)][aws].
+    A [Terraform](https://www.terraform.io) module to create [Google Organization Policies](https://cloud.google.com/resource-manager/docs/organization-policy/overview) on [Google Cloud Services (GCP)](https://cloud.google.com/).
 
     **_This module supports Terraform version 1
-    and is compatible with the Terraform AWS Provider version 3._**
+    and is compatible with the Terraform Google Provider version 4._**
 
     This module is part of our Infrastructure as Code (IaC) framework
     that enables our users and customers to easily deploy and manage reusable,
@@ -65,11 +52,7 @@ section {
     content = <<-END
       This module implements the following Terraform resources
 
-      - `null_resource`
-
-      and supports additional features of the following modules:
-
-      - [mineiros-io/something/google](https://github.com/mineiros-io/terraform-google-something)
+      - `google_org_policy_policy`
     END
   }
 
@@ -79,9 +62,31 @@ section {
       Most common usage of the module:
 
       ```hcl
-      module "terraform-module-template" {
-        source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
-      }
+        module "terraform-module-template" {
+          source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+
+          name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
+          parent = "projects/test-project"
+
+          spec = {
+            rules = {
+              condition = {
+                description = "A sample condition for the policy"
+                expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
+                location    = "sample-location.log"
+                title       = "sample-condition"
+              }
+              values = {
+                allowed_values = ["projects/allowed-project"]
+                denied_values  = ["projects/denied-project"]
+              }
+            }
+
+            rules = {
+              allow_all = true
+            }
+          }
+        }
       ```
     END
   }
@@ -95,62 +100,150 @@ section {
     section {
       title = "Main Resource Configuration"
 
-      # please add main resource variables here
-
-      # TODO: remove examples
-
-      ### Example of a required variable
-      variable "example_required" {
+      variable "name" {
         required    = true
         type        = string
         description = <<-END
-          The name of the resource
+          The resource name of the Policy.
+
+          Must be one of the following forms, where constraint_name is the name of the constraint which this Policy configures:
+          - projects/{project_number}/policies/{constraint_name}
+          - folders/{folder_id}/policies/{constraint_name}
+          - organizations/{organization_id}/policies/{constraint_name}
+
+          For example, "projects/123/policies/compute.disableSerialPortAccess".
+
+          **Note**: projects/{project_id}/policies/{constraint_name} is also an acceptable name for API requests, but responses will return the name using the equivalent project number.
         END
       }
 
-      ### Example of an optional variable
-      variable "example_name" {
+      variable "parent" {
+        required    = true
         type        = string
-        description = <<-END
-          The name of the resource
-        END
-        default     = "optional-resource-name"
+        description = "The parent of the resource."
       }
 
-      ### Example of an object
-      variable "example_user_object" {
-        type           = object(user)
-        default        = {}
-        readme_example = <<-END
-          user = {
-            name        = "marius"
-            description = "The guy from Berlin."
-          }
-        END
+      variable "spec" {
+        type        = object(policy_spec)
+        description = "Basic information about the Organization Policy."
 
-        attribute "name" {
-          required    = true
-          type        = string
+        attribute "inherit_from_parent" {
+          type        = bool
           description = <<-END
-            The name of the user
+            Determines the inheritance behavior for this Policy.
+
+            If `inherit_from_parent` is true, `PolicyRules` set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy.
+
+            If it is false, then no rules are inherited, and this Policy becomes the new root for evaluation.
+
+            This field can be set only for Policies which configure list constraints.
           END
         }
 
-        attribute "description" {
-          type        = string
-          default     = ""
+        attribute "reset" {
+          type        = bool
           description = <<-END
-            A description describng the user in more detail
+            Ignores policies set above this resource and restores the `constraint_default` enforcement behavior of the specific Constraint at this resource.
+
+            This field can be set in policies for either list or boolean constraints. If set, rules must be empty and `inherit_from_parent` must be set to false.
           END
+        }
+
+        attribute "rules" {
+          type        = list(policy_rule)
+          description = <<-END
+            Up to 10 PolicyRules are allowed.
+            In Policies for boolean constraints, the following requirements apply:
+            - There must be one and only one PolicyRule where condition is unset.
+            - BooleanPolicyRules with conditions must set `enforced` to the opposite of the PolicyRule without a condition.
+            - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
+          END
+
+          attribute "allow_all" {
+            type        = bool # TODO: should it be string "TRUE"?
+            description = <<-END
+              Setting this to true means that all values are allowed. This field can be set only in `Policies` for list constraints.
+            END
+          }
+
+          attribute "deny_all" {
+            type        = bool # TODO: should it be string "FALSE"?
+            description = <<-END
+              Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
+            END
+          }
+
+          attribute "enforce" {
+            type        = bool
+            description = <<-END
+              If `true`, then the `Policy` is enforced. If `false`, then any configuration is acceptable.
+
+              This field can be set only in Policies for boolean constraints.
+            END
+          }
+
+          attribute "condition" {
+            type        = object(condition)
+            description = <<-END
+              A condition which determines whether this rule is used in the evaluation of the policy.
+
+              When set, the `expression` field in the `Expr' must include from 1 to 10 subexpressions, joined by the "||" or "&&" operators.
+
+              Each subexpression must be of the form `"resource.matchTag('/tag_key_short_name, 'tag_value_short_name')"`. or `"resource.matchTagId('tagKeys/key_id', 'tagValues/value_id')"`. where key_name and value_name are the resource names for Label Keys and Values. These names are available from the Tag Manager Service.
+
+              An example expression is: `"resource.matchTag('123456789/environment, 'prod')"`. or `"resource.matchTagId('tagKeys/123', 'tagValues/456')"`.
+            END
+
+            attribute "description" {
+              type        = string
+              description = <<-END
+                 Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+              END
+            }
+
+            attribute "expression" {
+              type        = string
+              description = <<-END
+                Textual representation of an expression in Common Expression Language syntax.
+              END
+            }
+
+            attribute "location" {
+              type        = string
+              description = <<-END
+                String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+              END
+            }
+
+            attribute "title" {
+              type        = string
+              description = <<-END
+                Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+              END
+            }
+          }
+
+          attribute "values" {
+            type        = object(values)
+            description = <<-END
+
+            END
+            attribute "allowed_values" {
+              type        = set(string)
+              description = <<-END
+                List of values allowed at this resource.
+              END
+            }
+            attribute "denied_values" {
+              type        = set(string)
+              description = <<-END
+                List of values denied at this resource.
+              END
+            }
+          }
         }
       }
     }
-
-    # section {
-    #   title = "Extended Resource Configuration"
-    #
-    #   # please uncomment and add extended resource variables here (resource not the main resource)
-    # }
 
     section {
       title = "Module Configuration"
@@ -163,69 +256,13 @@ section {
         END
       }
 
-      # TODO: remove if not needed
-      variable "module_tags" {
-        type           = map(string)
-        default        = {}
-        description    = <<-END
-          A map of tags that will be applied to all created resources that accept tags.
-          Tags defined with `module_tags` can be overwritten by resource-specific tags.
-        END
-        readme_example = <<-END
-          module_tags = {
-            environment = "staging"
-            team        = "platform"
-          }
-        END
-      }
-
-      # TODO: remove if not needed
-      variable "module_timeouts" {
-        type           = map(timeout)
-        description    = <<-END
-          A map of timeout objects that is keyed by Terraform resource name
-          defining timeouts for `create`, `update` and `delete` Terraform operations.
-
-          Supported resources are: `null_resource`, ...
-        END
-        readme_example = <<-END
-          module_timeouts = {
-            null_resource = {
-              create = "4m"
-              update = "4m"
-              delete = "4m"
-            }
-          }
-        END
-
-        attribute "create" {
-          type        = string
-          description = <<-END
-            Timeout for create operations.
-          END
-        }
-
-        attribute "update" {
-          type        = string
-          description = <<-END
-            Timeout for update operations.
-          END
-        }
-
-        attribute "delete" {
-          type        = string
-          description = <<-END
-            Timeout for delete operations.
-          END
-        }
-      }
-
       variable "module_depends_on" {
-        type           = list(dependency)
-        description    = <<-END
+        type        = list(dependency)
+        description = <<-END
           A list of dependencies.
           Any object can be _assigned_ to this list to define a hidden external dependency.
         END
+
         default        = []
         readme_example = <<-END
           module_depends_on = [
@@ -242,18 +279,16 @@ section {
       The following attributes are exported in the outputs of the module:
     END
 
+    output "policy" {
+      description = "All outputs of the created 'google_org_policy_policy' resource."
+      type        = resource(google_org_policy_policy)
+    }
+
     output "module_enabled" {
       type        = bool
       description = <<-END
           Whether this module is enabled.
         END
-    }
-
-    output "module_tags" {
-      type        = map(string)
-      description = <<-END
-        The map of tags that are being applied to all created resources that accept tags.
-      END
     }
   }
 
@@ -354,7 +389,7 @@ section {
 
 references {
   ref "homepage" {
-    value = "https://mineiros.io/?ref=terraform-module-template"
+    value = "https://mineiros.io/?ref=terraform-google-organization-policy"
   }
   ref "hello@mineiros.io" {
     value = " mailto:hello@mineiros.io"
@@ -384,24 +419,24 @@ references {
     value = "https://semver.org/"
   }
   ref "variables.tf" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/variables.tf"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/variables.tf"
   }
   ref "examples/" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/examples"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/examples"
   }
   ref "issues" {
-    value = "https://github.com/mineiros-io/terraform-module-template/issues"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/issues"
   }
   ref "license" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/LICENSE"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/LICENSE"
   }
   ref "makefile" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/Makefile"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/Makefile"
   }
   ref "pull requests" {
-    value = "https://github.com/mineiros-io/terraform-module-template/pulls"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/pulls"
   }
   ref "contribution guidelines" {
-    value = "https://github.com/mineiros-io/terraform-module-template/blob/main/CONTRIBUTING.md"
+    value = "https://github.com/mineiros-io/terraform-google-organization-policy/blob/main/CONTRIBUTING.md"
   }
 }
