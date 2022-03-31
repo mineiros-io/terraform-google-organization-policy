@@ -190,6 +190,39 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   Default is `true`.
 
+- [**`module_timeouts`**](#var-module_timeouts): *(Optional `map(timeout)`)*<a name="var-module_timeouts"></a>
+
+  A map of timeout objects that is keyed by Terraform resource name
+  defining timeouts for `create`, `update` and `delete` Terraform operations.
+
+  Supported resources are: `google_org_policy_policy`.
+
+  Example:
+
+  ```hcl
+  module_timeouts = {
+    google_org_policy_policy = {
+      create = "20m"
+      update = "20m"
+      delete = "20m"
+    }
+  }
+  ```
+
+  Each `timeout` object in the map accepts the following attributes:
+
+  - [**`create`**](#attr-module_timeouts-create): *(Optional `string`)*<a name="attr-module_timeouts-create"></a>
+
+    Timeout for create operations.
+
+  - [**`update`**](#attr-module_timeouts-update): *(Optional `string`)*<a name="attr-module_timeouts-update"></a>
+
+    Timeout for update operations.
+
+  - [**`delete`**](#attr-module_timeouts-delete): *(Optional `string`)*<a name="attr-module_timeouts-delete"></a>
+
+    Timeout for delete operations.
+
 - [**`module_depends_on`**](#var-module_depends_on): *(Optional `list(dependency)`)*<a name="var-module_depends_on"></a>
 
   A list of dependencies.

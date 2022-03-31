@@ -59,17 +59,11 @@ variable "module_enabled" {
   default     = true
 }
 
-# variable "module_tags" {
-#   type        = map(string)
-#   description = "(Optional) A map of tags that will be applied to all created resources that accept tags. Tags defined with 'module_tags' can be overwritten by resource-specific tags."
-#   default     = {}
-# }
-
-# variable "module_timeouts" {
-#   description = "(Optional) A map of timeout objects that is keyed by Terraform resource name defining timeouts for `create`, `update` and `delete` Terraform operations."
-#   type        = any
-#   default     = null
-# }
+variable "module_timeouts" {
+  description = "(Optional) A map of timeout objects that is keyed by Terraform resource name defining timeouts for `create`, `update` and `delete` Terraform operations."
+  type        = any
+  default     = null
+}
 
 variable "module_depends_on" {
   type        = any

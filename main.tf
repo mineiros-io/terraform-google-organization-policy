@@ -7,8 +7,6 @@
 resource "google_org_policy_policy" "policy" {
   count = var.module_enabled ? 1 : 0
 
-  depends_on = [var.module_depends_on]
-
   name   = var.name
   parent = var.parent
 
@@ -49,4 +47,16 @@ resource "google_org_policy_policy" "policy" {
       }
     }
   }
+
+  dynamic "timeouts" {
+    for_each = try([var.module_timeouts.google_org_policy_policy], [])
+
+    content {
+      create = try(timeouts.value.create, null)
+      update = try(timeouts.value.update, null)
+      delete = try(timeouts.value.delete, null)
+    }
+  }
+
+  depends_on = [var.module_depends_on]
 }

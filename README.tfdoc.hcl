@@ -256,6 +256,46 @@ section {
         END
       }
 
+      variable "module_timeouts" {
+        type           = map(timeout)
+        description    = <<-END
+          A map of timeout objects that is keyed by Terraform resource name
+          defining timeouts for `create`, `update` and `delete` Terraform operations.
+
+          Supported resources are: `google_org_policy_policy`.
+        END
+        readme_example = <<-END
+          module_timeouts = {
+            google_org_policy_policy = {
+              create = "20m"
+              update = "20m"
+              delete = "20m"
+            }
+          }
+        END
+
+        attribute "create" {
+          type        = string
+          description = <<-END
+            Timeout for create operations.
+          END
+        }
+
+        attribute "update" {
+          type        = string
+          description = <<-END
+            Timeout for update operations.
+          END
+        }
+
+        attribute "delete" {
+          type        = string
+          description = <<-END
+            Timeout for delete operations.
+          END
+        }
+      }
+
       variable "module_depends_on" {
         type        = list(dependency)
         description = <<-END
