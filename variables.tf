@@ -45,7 +45,7 @@ variable "spec" {
   #   }))
   # })
   description = "(Optional) Basic information about the Organization Policy."
-  default     = {}
+  default     = null
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

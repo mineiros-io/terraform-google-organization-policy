@@ -13,7 +13,7 @@ resource "google_org_policy_policy" "policy" {
   parent = var.parent
 
   dynamic "spec" {
-    for_each = try([var.spec], [])
+    for_each = var.spec != null ? [var.spec] : []
 
     content {
       dynamic "rules" {
