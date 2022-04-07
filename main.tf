@@ -16,15 +16,14 @@ resource "google_org_policy_policy" "policy" {
     content {
       dynamic "rules" {
         for_each = try(spec.value.rules, [])
-        iterator = rule
 
         content {
-          allow_all = try(rule.value.allow_all, null)
-          deny_all  = try(rule.value.deny_all, null)
-          enforce   = try(rule.value.enforce, null)
+          allow_all = try(rules.value.allow_all, null)
+          deny_all  = try(rules.value.deny_all, null)
+          enforce   = try(rules.value.enforce, null)
 
           dynamic "condition" {
-            for_each = try([rule.value.condition], [])
+            for_each = try([rules.value.condition], [])
 
             content {
               description = try(condition.value.description, null)
@@ -35,12 +34,11 @@ resource "google_org_policy_policy" "policy" {
           }
 
           dynamic "values" {
-            for_each = try(rule.value.values, [])
-            iterator = spec_value
+            for_each = try([rules.value.values], [])
 
             content {
-              allowed_values = try(spec_value.value.allowed_values, [])
-              denied_values  = try(spec_value.value.denied_values, [])
+              allowed_values = try(values.value.allowed_values, null)
+              denied_values  = try(values.value.denied_values, null)
             }
           }
         }

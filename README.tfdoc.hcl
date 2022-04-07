@@ -63,28 +63,29 @@ section {
 
       ```hcl
         module "terraform-module-template" {
-          source = "git@github.com:mineiros-io/terraform-module-template.git?ref=v0.0.1"
+          source = "github.com/mineiros-io/terraform-module-template?ref=v0.0.2"
 
           name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
           parent = "projects/test-project"
 
           spec = {
-            rules = {
-              condition = {
-                description = "A sample condition for the policy"
-                expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
-                location    = "sample-location.log"
-                title       = "sample-condition"
+            rules = [
+              {
+                condition = {
+                  description = "A sample condition for the policy"
+                  expression  = "resource.matchLabels('labelKeys/123', 'labelValues/345')"
+                  location    = "sample-location.log"
+                  title       = "sample-condition"
+                }
+                values = {
+                  allowed_values = ["projects/allowed-project"]
+                  denied_values  = ["projects/denied-project"]
+                }
+              },
+              {
+                allow_all = true
               }
-              values = {
-                allowed_values = ["projects/allowed-project"]
-                denied_values  = ["projects/denied-project"]
-              }
-            }
-
-            rules = {
-              allow_all = true
-            }
+            ]
           }
         }
       ```
@@ -154,6 +155,7 @@ section {
           description = <<-END
             Up to 10 PolicyRules are allowed.
             In Policies for boolean constraints, the following requirements apply:
+
             - There must be one and only one PolicyRule where condition is unset.
             - BooleanPolicyRules with conditions must set `enforced` to the opposite of the PolicyRule without a condition.
             - During policy evaluation, PolicyRules with conditions that are true for a target resource take precedence.
