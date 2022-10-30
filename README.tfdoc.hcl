@@ -115,6 +115,8 @@ section {
           For example, "projects/123/policies/compute.disableSerialPortAccess".
 
           **Note**: projects/{project_id}/policies/{constraint_name} is also an acceptable name for API requests, but responses will return the name using the equivalent project number.
+
+          For an overview of available constraints please see https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints
         END
       }
 
