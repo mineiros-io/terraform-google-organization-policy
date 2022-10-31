@@ -93,6 +93,8 @@ See [variables.tf] and [examples/] for details and use-cases.
 
   **Note**: projects/{project_id}/policies/{constraint_name} is also an acceptable name for API requests, but responses will return the name using the equivalent project number.
 
+  For an overview of available constraints please see https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints
+
 - [**`parent`**](#var-parent): *(**Required** `string`)*<a name="var-parent"></a>
 
   The parent of the resource.
