@@ -164,14 +164,14 @@ section {
           END
 
           attribute "allow_all" {
-            type        = bool # TODO: should it be string "TRUE"?
+            type        = bool
             description = <<-END
               Setting this to true means that all values are allowed. This field can be set only in `Policies` for list constraints.
             END
           }
 
           attribute "deny_all" {
-            type        = bool # TODO: should it be string "FALSE"?
+            type        = bool
             description = <<-END
               Setting this to true means that all values are denied. This field can be set only in Policies for list constraints.
             END

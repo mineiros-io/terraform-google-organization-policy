@@ -12,9 +12,9 @@ resource "google_org_policy_policy" "policy" {
         for_each = try(spec.value.rules, [])
 
         content {
-          allow_all = try(rules.value.allow_all, null)
-          deny_all  = try(rules.value.deny_all, null)
-          enforce   = try(rules.value.enforce, null)
+          allow_all = try(rules.value.allow_all, null) != null ? rules.value.allow_all == true ? "TRUE" : null : null
+          deny_all  = try(rules.value.deny_all, null) != null ? rules.value.deny_all == true ? "TRUE" : null : null
+          enforce   = try(rules.value.enforce, null) != null ? rules.value.enforce == true ? "TRUE" : null : null
 
           dynamic "condition" {
             for_each = try([rules.value.condition], [])
