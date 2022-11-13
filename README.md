@@ -47,7 +47,7 @@ Most common usage of the module:
 
 ```hcl
   module "terraform-google-organization-policy" {
-    source = "github.com/mineiros-io/terraform-google-organization-policy?ref=v0.0.2"
+    source = "github.com/mineiros-io/terraform-google-organization-policy?ref=v0.1.0"
 
     name   = "projects/test-project/policies/iam.disableServiceAccountKeyUpload"
     parent = "projects/test-project"
